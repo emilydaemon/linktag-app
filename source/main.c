@@ -71,7 +71,7 @@ void render_text() {
 
 void render_finish() {
 	GRRLIB_Render();
-	render_text(); // no idea why, but we have to do this to avoid flickering...
+	GRRLIB_FillScreen(0x000000FF); // avoid graphical issues/flickering
 }
 
 void draw_center_text(int y, const char *string, GRRLIB_ttfFont *font, int size, u32 color) {
