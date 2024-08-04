@@ -33,6 +33,8 @@
 GRRLIB_texImg *background, *prompt, *prompt_sm;
 GRRLIB_ttfFont *header_font, *body_font;
 
+GRRLIB_texImg *text_layer, *text_buffer;
+
 int loading = 0;
 int is_widescreen = 0;
 char winagent[32];
@@ -54,6 +56,37 @@ int center_img(int w) {
 		wf = w * 0.75;
 	}
 	return (640/2)-(wf/2);
+}
+
+void draw_text(int x, int y, const char *string, GRRLIB_ttfFont *font, int size, u32 color) {
+	memcpy(text_buffer, text_layer, sizeof(GRRLIB_texImg));
+	GRRLIB_CompoStart();
+	GRRLIB_DrawImg(0, 0, text_buffer, 0, 1, 1, 0xFFFFFFFF);
+	GRRLIB_PrintfTTF(x, y, font, string, size, color);
+	GRRLIB_CompoEnd(0, 0, text_layer);
+}
+
+void render_text() {
+	GRRLIB_DrawImg(center_img(640), 0, text_layer, 0, ar_correct(1), 1, 0xFFFFFFFF);
+}
+
+void draw_center_text(int y, const char *string, GRRLIB_ttfFont *font, int size, u32 color) {
+	int x;
+	int w;
+	w = GRRLIB_WidthTTF(font, string, size);
+	if (is_widescreen) {
+		// what goes here?
+	}
+	x = (640/2)-(w/2);
+	draw_text(x, y, string, font, size, color);
+}
+
+void draw_title(const char *string) {
+	draw_center_text(89, string, header_font, 36, 0xFFFFFFFF);
+}
+
+void draw_body(const char *string) {
+	draw_center_text(228, string, body_font, 18, 0xFFFFFFFF);
 }
 
 void early_die(char *message) {
@@ -80,6 +113,8 @@ void init() {
 
 	header_font = GRRLIB_LoadTTF(Rubik_Bold_ttf, Rubik_Bold_ttf_size);
 	body_font = GRRLIB_LoadTTF(Inter_Medium_ttf, Inter_Medium_ttf_size);
+
+	text_layer = GRRLIB_CreateEmptyTexture(640, 480);
 
 	if (! fatInitDefault()) {
 		early_die("Could not initialize FAT device.");
@@ -144,27 +179,25 @@ void draw_progbar(int x, int y, int w, int h, int prog, int prog_max) {
 }
 
 void draw_prog_prompt() {
+	draw_center_text(211, "Please wait...", body_font, 18, 0xFFFFFFFF);
 	draw_prompt(1);
-	/*
-	char fuckinghell[16];
-	sprintf(fuckinghell, "loading: %d", loading);
-	GRRLIB_PrintfTTF(10, 458, body_font, fuckinghell, 18, 0xFFFFFFFF);
-	*/
-	GRRLIB_PrintfTTF(265, 211, body_font, "Please wait...", 18, 0xFFFFFFFF);
 	draw_progbar(center_img(320), 241, 320, 24, loading, LOADING_MAX);
+	render_text();
 	GRRLIB_Render();
 }
 
 void draw_error_prompt() {
+	draw_title("Error");
+	draw_body("Press HOME to exit.");
 	draw_prompt(0);
-	GRRLIB_PrintfTTF(274, 89, header_font, "Error", 36, 0xFFFFFFFF);
-	GRRLIB_PrintfTTF(237, 352, body_font, "Press HOME to exit.", 18, 0xFFFFFFFF);
 }
 
 void quit() {
 	GRRLIB_FreeTexture(background);
 	GRRLIB_FreeTexture(prompt);
 	GRRLIB_FreeTexture(prompt_sm);
+	GRRLIB_FreeTexture(text_layer);
+	GRRLIB_FreeTexture(text_buffer);
 	GRRLIB_FreeTTF(header_font);
 	GRRLIB_FreeTTF(body_font);
 	GRRLIB_Exit();
@@ -185,8 +218,6 @@ int main(int argc, char **argv) {
 
 	char url[128] = "";
 
-	//char *user_id = argv[0];
-	//char *user_id = "1098651906768908292";
 	GRRLIB_texImg *tag_tex;
 
 	init();
@@ -196,8 +227,9 @@ int main(int argc, char **argv) {
 
 	if (! json_is_string(user_id_object)) {
 		while (1) {
+			draw_body("\"user_id\" in config is not a string.");
 			draw_error_prompt();
-			GRRLIB_PrintfTTF(180, 228, body_font, "\"user_id\" in config is not a string.", 18, 0xFFFFFFFF);
+			render_text();
 			GRRLIB_Render();
 			home_quit();
 		}
@@ -207,57 +239,23 @@ int main(int argc, char **argv) {
 
 	if (strcmp(user_id, "0") == 0) {
 		while (1) {
+			draw_body("Please edit /apps/linktag/config.json.");
 			draw_error_prompt();
-			GRRLIB_PrintfTTF(170, 228, body_font, "Please edit /apps/linktag/config.json.", 18, 0xFFFFFFFF);
+			render_text();
 			GRRLIB_Render();
 			home_quit();
 		}
 	}
-
-	/*
-	int i;
-	if (argc < 1) {
-		while (1) {
-			draw_error_prompt();
-			GRRLIB_PrintfTTF(238, 228, body_font, "Arguments missing.", 18, 0xFFFFFFFF);
-			for (i=0; i < argc; i++) {
-				GRRLIB_PrintfTTF(25, 25+(i*20), body_font, argv[i], 18, 0xFFFFFFFF);
-			}
-			GRRLIB_Render();
-			home_quit();
-		}
-	}
-	*/
-
-	// HACK: is argument a number?
-	/*
-	if (atoi(user_id) == 0) {
-		while (1) {
-			draw_error_prompt();
-			GRRLIB_PrintfTTF(218, 228, body_font, "user_id is not a number.", 18, 0xFFFFFFFF);
-			GRRLIB_Render();
-			home_quit();
-		}
-	}
-	*/
 
 	loading = 0;
-	/*
-	while (1) {
-		WPAD_ScanPads();
-		if (WPAD_ButtonsDown(0) & WPAD_BUTTON_HOME) quit();
-		if (WPAD_ButtonsDown(0) & WPAD_BUTTON_LEFT) loading--;
-		if (WPAD_ButtonsDown(0) & WPAD_BUTTON_RIGHT) loading++;
-		draw_prog_prompt();
-	}
-	*/
 	draw_prog_prompt();
 	
 	ret = if_config(localip, netmask, gateway, TRUE, 20);
 	if (ret < 0) {
 		while (1) {
+			draw_body("Failed to configure network.");
 			draw_error_prompt();
-			GRRLIB_PrintfTTF(202, 228, body_font, "Failed to configure network.", 18, 0xFFFFFFFF);
+			render_text();
 			GRRLIB_Render();
 			home_quit();
 		}
@@ -271,8 +269,9 @@ int main(int argc, char **argv) {
 	if (host.error != 0) {
 		winyl_close(&host);
 		while (1) {
+			draw_body("Failed to create winyl host.");
 			draw_error_prompt();
-			GRRLIB_PrintfTTF(160, 228, body_font, "Failed to create winyl host.", 18, 0xFFFFFFFF);
+			render_text();
 			GRRLIB_Render();
 			home_quit();
 		}
@@ -281,15 +280,14 @@ int main(int argc, char **argv) {
 
 	sprintf(url, "/tag-resize-hack.php?id=%s", user_id);
 
-	//winyl_response res = winyl_request(&host, "/tag-resize-hack.php?id=1098651906768908292", 0);
 	winyl_response res = winyl_request(&host, url, 0);
-	//winyl_response res = winyl_request(&host, "/tag-resize-hack.php?id=1", 0);
 	if (res.status == 404) {
 		winyl_response_close(&res);
 		winyl_close(&host);
 		while (1) {
+			draw_body("HTTP 404; RiiTag does not exist.");
 			draw_error_prompt();
-			GRRLIB_PrintfTTF(181, 228, body_font, "HTTP 404; RiiTag does not exist.", 18, 0xFFFFFFFF);
+			render_text();
 			GRRLIB_Render();
 			home_quit();
 		}
@@ -301,37 +299,28 @@ int main(int argc, char **argv) {
 		winyl_response_close(&res);
 		winyl_close(&host);
 		while (1) {
-			draw_error_prompt();
 			switch (res.error) {
 				case WINYL_ERROR_PORT:
-					GRRLIB_PrintfTTF(10, 228, body_font, "Invalid port (not 0-65535)", 18, 0xFFFFFFFF);
+					draw_body("Invalid port (not 0-65535)");
 					break;
 				case WINYL_ERROR_DNS:
-					GRRLIB_PrintfTTF(10, 228, body_font, "Error calling net_gethostbyname()", 18, 0xFFFFFFFF);
+					draw_body("Error calling net_gethostbyname()");
 					break;
 				case WINYL_ERROR_MALLOC:
-					GRRLIB_PrintfTTF(10, 228, body_font, "Failed to allocate memory", 18, 0xFFFFFFFF);
+					draw_body("Failed to allocate memory");
 					break;
 				default:
-					GRRLIB_PrintfTTF(10, 228, body_font, wtf, 18, 0xFFFFFFFF);
+					draw_body(wtf);
 					break;
 			}
+			draw_error_prompt();
+			render_text();
 			GRRLIB_Render();
 			home_quit();
 		}
 	}
-	//loading=3; draw_prog_prompt();
 
 	u8 *tag_img = (unsigned char *) res.body;
-
-	/*
-	fatInitDefault(); // fuck it i cant be bothered to fucking error check FUCK.
-
-	FILE *f;
-	f = fopen("piss_and_shit.png", "wb");
-	fwrite(res.body, 1, res._body_len, f);
-	fclose(f);
-	*/
 
 	tag_tex = GRRLIB_LoadTexture(tag_img);
 
@@ -341,19 +330,16 @@ int main(int argc, char **argv) {
 		// If [HOME] was pressed on the first Wiimote, break out of the loop
 		if (WPAD_ButtonsDown(0) & WPAD_BUTTON_HOME)  break;
 
+		draw_center_text(352, "Press HOME to exit.", body_font, 18, 0xFFFFFFFF);
 		draw_prompt(0);
-		GRRLIB_PrintfTTF(237, 352, body_font, "Press HOME to exit.", 18, 0xFFFFFFFF);
 		GRRLIB_DrawImg(center_img(514), 143, tag_tex, 0, ar_correct(1), 1, 0xFFFFFFFF);
-		//GRRLIB_PrintfTTF(5, 125, body_font, "fucking fuck", 12, 0xFFFFFFFF);
+		render_text();
 
 		GRRLIB_Render();
 	}
 
 	winyl_response_close(&res);
 	winyl_close(&host);
-
-	//GRRLIB_FreeTexture(tag_tex);
-	//GRRLIB_FreeTexture(tag_tex);
 
 	quit();
 	// we should never reach this point. WTF?
