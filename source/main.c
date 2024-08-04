@@ -25,11 +25,6 @@
 
 #define LOADING_MAX 3
 
-/*
-#define STB_IMAGE_RESIZE_IMPLEMENTATION
-#include "stb_image_resize2.h"
-*/
-
 GRRLIB_texImg *background, *prompt, *prompt_sm;
 GRRLIB_ttfFont *header_font, *body_font;
 
@@ -164,11 +159,6 @@ void draw_progbar(int x, int y, int w, int h, int prog, int prog_max) {
 
 void draw_prog_prompt() {
 	draw_prompt(1);
-	/*
-	char fuckinghell[16];
-	sprintf(fuckinghell, "loading: %d", loading);
-	GRRLIB_PrintfTTF(10, 458, body_font, fuckinghell, 18, 0xFFFFFFFF);
-	*/
 	draw_center_text(211, "Please wait...", body_font, 18, 0xFFFFFFFF);
 	draw_progbar(center_img(320), 241, 320, 24, loading, LOADING_MAX);
 	GRRLIB_Render();
@@ -233,43 +223,7 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	/*
-	int i;
-	if (argc < 1) {
-		while (1) {
-			draw_error_prompt();
-			GRRLIB_PrintfTTF(238, 228, body_font, "Arguments missing.", 18, 0xFFFFFFFF);
-			for (i=0; i < argc; i++) {
-				GRRLIB_PrintfTTF(25, 25+(i*20), body_font, argv[i], 18, 0xFFFFFFFF);
-			}
-			GRRLIB_Render();
-			home_quit();
-		}
-	}
-	*/
-
-	// HACK: is argument a number?
-	/*
-	if (atoi(user_id) == 0) {
-		while (1) {
-			draw_error_prompt();
-			GRRLIB_PrintfTTF(218, 228, body_font, "user_id is not a number.", 18, 0xFFFFFFFF);
-			GRRLIB_Render();
-			home_quit();
-		}
-	}
-	*/
-
 	loading = 0;
-	/*
-	while (1) {
-		WPAD_ScanPads();
-		if (WPAD_ButtonsDown(0) & WPAD_BUTTON_HOME) quit();
-		if (WPAD_ButtonsDown(0) & WPAD_BUTTON_LEFT) loading--;
-		if (WPAD_ButtonsDown(0) & WPAD_BUTTON_RIGHT) loading++;
-		draw_prog_prompt();
-	}
-	*/
 	draw_prog_prompt();
 	
 	ret = if_config(localip, netmask, gateway, TRUE, 20);
@@ -300,9 +254,7 @@ int main(int argc, char **argv) {
 
 	sprintf(url, "/tag-resize-hack.php?id=%s", user_id);
 
-	//winyl_response res = winyl_request(&host, "/tag-resize-hack.php?id=1098651906768908292", 0);
 	winyl_response res = winyl_request(&host, url, 0);
-	//winyl_response res = winyl_request(&host, "/tag-resize-hack.php?id=1", 0);
 	if (res.status == 404) {
 		winyl_response_close(&res);
 		winyl_close(&host);
@@ -339,18 +291,8 @@ int main(int argc, char **argv) {
 			home_quit();
 		}
 	}
-	//loading=3; draw_prog_prompt();
 
 	u8 *tag_img = (unsigned char *) res.body;
-
-	/*
-	fatInitDefault(); // fuck it i cant be bothered to fucking error check FUCK.
-
-	FILE *f;
-	f = fopen("piss_and_shit.png", "wb");
-	fwrite(res.body, 1, res._body_len, f);
-	fclose(f);
-	*/
 
 	tag_tex = GRRLIB_LoadTexture(tag_img);
 
@@ -363,16 +305,12 @@ int main(int argc, char **argv) {
 		draw_prompt(0);
 		draw_center_text(352, "Press HOME to exit.", body_font, 18, 0xFFFFFFFF);
 		GRRLIB_DrawImg(center_img(514), 143, tag_tex, 0, ar_correct(1), 1, 0xFFFFFFFF);
-		//GRRLIB_PrintfTTF(5, 125, body_font, "fucking fuck", 12, 0xFFFFFFFF);
 
 		GRRLIB_Render();
 	}
 
 	winyl_response_close(&res);
 	winyl_close(&host);
-
-	//GRRLIB_FreeTexture(tag_tex);
-	//GRRLIB_FreeTexture(tag_tex);
 
 	quit();
 	// we should never reach this point. WTF?
