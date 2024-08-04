@@ -33,7 +33,7 @@
 GRRLIB_texImg *background, *prompt, *prompt_sm;
 GRRLIB_ttfFont *header_font, *body_font;
 
-GRRLIB_texImg *text_layer, *text_buffer;
+GRRLIB_texImg *text_layer;
 
 int loading = 0;
 int is_widescreen = 0;
@@ -59,9 +59,8 @@ int center_img(int w) {
 }
 
 void draw_text(int x, int y, const char *string, GRRLIB_ttfFont *font, int size, u32 color) {
-	memcpy(text_buffer, text_layer, sizeof(GRRLIB_texImg));
 	GRRLIB_CompoStart();
-	GRRLIB_DrawImg(0, 0, text_buffer, 0, 1, 1, 0xFFFFFFFF);
+	GRRLIB_DrawImg(0, 0, text_layer, 0, 1, 1, 0xFFFFFFFF);
 	GRRLIB_PrintfTTF(x, y, font, string, size, color);
 	GRRLIB_CompoEnd(0, 0, text_layer);
 }
@@ -70,13 +69,15 @@ void render_text() {
 	GRRLIB_DrawImg(center_img(640), 0, text_layer, 0, ar_correct(1), 1, 0xFFFFFFFF);
 }
 
+void render_finish() {
+	GRRLIB_Render();
+	render_text(); // no idea why, but we have to do this to avoid flickering...
+}
+
 void draw_center_text(int y, const char *string, GRRLIB_ttfFont *font, int size, u32 color) {
 	int x;
 	int w;
 	w = GRRLIB_WidthTTF(font, string, size);
-	if (is_widescreen) {
-		// what goes here?
-	}
 	x = (640/2)-(w/2);
 	draw_text(x, y, string, font, size, color);
 }
@@ -98,7 +99,7 @@ void early_die(char *message) {
 		GRRLIB_PrintfTTF(40, 100, body_font, message, 18, 0xFFFFFFFF);
 		GRRLIB_PrintfTTF(40, 427, body_font, "Press HOME to quit.", 12, 0xCCCCCCFF);
 
-		GRRLIB_Render();
+		render_finish();
 	}
 }
 
@@ -183,7 +184,7 @@ void draw_prog_prompt() {
 	draw_prompt(1);
 	draw_progbar(center_img(320), 241, 320, 24, loading, LOADING_MAX);
 	render_text();
-	GRRLIB_Render();
+	render_finish();
 }
 
 void draw_error_prompt() {
@@ -197,7 +198,6 @@ void quit() {
 	GRRLIB_FreeTexture(prompt);
 	GRRLIB_FreeTexture(prompt_sm);
 	GRRLIB_FreeTexture(text_layer);
-	GRRLIB_FreeTexture(text_buffer);
 	GRRLIB_FreeTTF(header_font);
 	GRRLIB_FreeTTF(body_font);
 	GRRLIB_Exit();
@@ -230,7 +230,7 @@ int main(int argc, char **argv) {
 			draw_body("\"user_id\" in config is not a string.");
 			draw_error_prompt();
 			render_text();
-			GRRLIB_Render();
+			render_finish();
 			home_quit();
 		}
 	}
@@ -242,7 +242,7 @@ int main(int argc, char **argv) {
 			draw_body("Please edit /apps/linktag/config.json.");
 			draw_error_prompt();
 			render_text();
-			GRRLIB_Render();
+			render_finish();
 			home_quit();
 		}
 	}
@@ -256,7 +256,7 @@ int main(int argc, char **argv) {
 			draw_body("Failed to configure network.");
 			draw_error_prompt();
 			render_text();
-			GRRLIB_Render();
+			render_finish();
 			home_quit();
 		}
 	}
@@ -272,7 +272,7 @@ int main(int argc, char **argv) {
 			draw_body("Failed to create winyl host.");
 			draw_error_prompt();
 			render_text();
-			GRRLIB_Render();
+			render_finish();
 			home_quit();
 		}
 	}
@@ -288,7 +288,7 @@ int main(int argc, char **argv) {
 			draw_body("HTTP 404; RiiTag does not exist.");
 			draw_error_prompt();
 			render_text();
-			GRRLIB_Render();
+			render_finish();
 			home_quit();
 		}
 	}
@@ -315,7 +315,7 @@ int main(int argc, char **argv) {
 			}
 			draw_error_prompt();
 			render_text();
-			GRRLIB_Render();
+			render_finish();
 			home_quit();
 		}
 	}
@@ -335,7 +335,7 @@ int main(int argc, char **argv) {
 		GRRLIB_DrawImg(center_img(514), 143, tag_tex, 0, ar_correct(1), 1, 0xFFFFFFFF);
 		render_text();
 
-		GRRLIB_Render();
+		render_finish();
 	}
 
 	winyl_response_close(&res);
