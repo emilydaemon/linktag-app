@@ -28,6 +28,8 @@
 GRRLIB_texImg *background, *prompt, *prompt_sm;
 GRRLIB_ttfFont *header_font, *body_font;
 
+GRRLIB_texImg *text_layer;
+
 int loading = 0;
 int is_widescreen = 0;
 char winagent[32];
@@ -51,15 +53,28 @@ int center_img(int w) {
 	return (640/2)-(wf/2);
 }
 
+void draw_text(int x, int y, const char *string, GRRLIB_ttfFont *font, int size, u32 color) {
+	GRRLIB_CompoStart();
+	GRRLIB_DrawImg(0, 0, text_layer, 0, 1, 1, 0xFFFFFFFF);
+	GRRLIB_PrintfTTF(x, y, font, string, size, color);
+	GRRLIB_CompoEnd(0, 0, text_layer);
+}
+
+void render_text() {
+	GRRLIB_DrawImg(center_img(640), 0, text_layer, 0, ar_correct(1), 1, 0xFFFFFFFF);
+}
+
+void render_finish() {
+	GRRLIB_Render();
+	GRRLIB_FillScreen(0x000000FF); // avoid graphical issues/flickering
+}
+
 void draw_center_text(int y, const char *string, GRRLIB_ttfFont *font, int size, u32 color) {
 	int x;
 	int w;
 	w = GRRLIB_WidthTTF(font, string, size);
-	if (is_widescreen) {
-		// what goes here?
-	}
 	x = (640/2)-(w/2);
-	GRRLIB_PrintfTTF(x, y, font, string, size, color);
+	draw_text(x, y, string, font, size, color);
 }
 
 void draw_title(const char *string) {
@@ -79,7 +94,7 @@ void early_die(char *message) {
 		GRRLIB_PrintfTTF(40, 100, body_font, message, 18, 0xFFFFFFFF);
 		GRRLIB_PrintfTTF(40, 427, body_font, "Press HOME to quit.", 12, 0xCCCCCCFF);
 
-		GRRLIB_Render();
+		render_finish();
 	}
 }
 
@@ -94,6 +109,8 @@ void init() {
 
 	header_font = GRRLIB_LoadTTF(Rubik_Bold_ttf, Rubik_Bold_ttf_size);
 	body_font = GRRLIB_LoadTTF(Inter_Medium_ttf, Inter_Medium_ttf_size);
+
+	text_layer = GRRLIB_CreateEmptyTexture(640, 480);
 
 	if (! fatInitDefault()) {
 		early_die("Could not initialize FAT device.");
@@ -158,22 +175,24 @@ void draw_progbar(int x, int y, int w, int h, int prog, int prog_max) {
 }
 
 void draw_prog_prompt() {
-	draw_prompt(1);
 	draw_center_text(211, "Please wait...", body_font, 18, 0xFFFFFFFF);
+	draw_prompt(1);
 	draw_progbar(center_img(320), 241, 320, 24, loading, LOADING_MAX);
-	GRRLIB_Render();
+	render_text();
+	render_finish();
 }
 
 void draw_error_prompt() {
-	draw_prompt(0);
 	draw_title("Error");
 	draw_body("Press HOME to exit.");
+	draw_prompt(0);
 }
 
 void quit() {
 	GRRLIB_FreeTexture(background);
 	GRRLIB_FreeTexture(prompt);
 	GRRLIB_FreeTexture(prompt_sm);
+	GRRLIB_FreeTexture(text_layer);
 	GRRLIB_FreeTTF(header_font);
 	GRRLIB_FreeTTF(body_font);
 	GRRLIB_Exit();
@@ -194,8 +213,6 @@ int main(int argc, char **argv) {
 
 	char url[128] = "";
 
-	//char *user_id = argv[0];
-	//char *user_id = "1098651906768908292";
 	GRRLIB_texImg *tag_tex;
 
 	init();
@@ -205,9 +222,10 @@ int main(int argc, char **argv) {
 
 	if (! json_is_string(user_id_object)) {
 		while (1) {
-			draw_error_prompt();
 			draw_body("\"user_id\" in config is not a string.");
-			GRRLIB_Render();
+			draw_error_prompt();
+			render_text();
+			render_finish();
 			home_quit();
 		}
 	}
@@ -216,9 +234,10 @@ int main(int argc, char **argv) {
 
 	if (strcmp(user_id, "0") == 0) {
 		while (1) {
-			draw_error_prompt();
 			draw_body("Please edit /apps/linktag/config.json.");
-			GRRLIB_Render();
+			draw_error_prompt();
+			render_text();
+			render_finish();
 			home_quit();
 		}
 	}
@@ -229,9 +248,10 @@ int main(int argc, char **argv) {
 	ret = if_config(localip, netmask, gateway, TRUE, 20);
 	if (ret < 0) {
 		while (1) {
-			draw_error_prompt();
 			draw_body("Failed to configure network.");
-			GRRLIB_Render();
+			draw_error_prompt();
+			render_text();
+			render_finish();
 			home_quit();
 		}
 	}
@@ -244,9 +264,10 @@ int main(int argc, char **argv) {
 	if (host.error != 0) {
 		winyl_close(&host);
 		while (1) {
-			draw_error_prompt();
 			draw_body("Failed to create winyl host.");
-			GRRLIB_Render();
+			draw_error_prompt();
+			render_text();
+			render_finish();
 			home_quit();
 		}
 	}
@@ -259,9 +280,10 @@ int main(int argc, char **argv) {
 		winyl_response_close(&res);
 		winyl_close(&host);
 		while (1) {
-			draw_error_prompt();
 			draw_body("HTTP 404; RiiTag does not exist.");
-			GRRLIB_Render();
+			draw_error_prompt();
+			render_text();
+			render_finish();
 			home_quit();
 		}
 	}
@@ -272,7 +294,6 @@ int main(int argc, char **argv) {
 		winyl_response_close(&res);
 		winyl_close(&host);
 		while (1) {
-			draw_error_prompt();
 			switch (res.error) {
 				case WINYL_ERROR_PORT:
 					draw_body("Invalid port (not 0-65535)");
@@ -287,7 +308,9 @@ int main(int argc, char **argv) {
 					draw_body(wtf);
 					break;
 			}
-			GRRLIB_Render();
+			draw_error_prompt();
+			render_text();
+			render_finish();
 			home_quit();
 		}
 	}
@@ -302,11 +325,12 @@ int main(int argc, char **argv) {
 		// If [HOME] was pressed on the first Wiimote, break out of the loop
 		if (WPAD_ButtonsDown(0) & WPAD_BUTTON_HOME)  break;
 
-		draw_prompt(0);
 		draw_center_text(352, "Press HOME to exit.", body_font, 18, 0xFFFFFFFF);
+		draw_prompt(0);
 		GRRLIB_DrawImg(center_img(514), 143, tag_tex, 0, ar_correct(1), 1, 0xFFFFFFFF);
+		render_text();
 
-		GRRLIB_Render();
+		render_finish();
 	}
 
 	winyl_response_close(&res);
