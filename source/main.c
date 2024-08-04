@@ -56,6 +56,25 @@ int center_img(int w) {
 	return (640/2)-(wf/2);
 }
 
+void draw_center_text(int y, const char *string, GRRLIB_ttfFont *font, int size, u32 color) {
+	int x;
+	int w;
+	w = GRRLIB_WidthTTF(font, string, size);
+	if (is_widescreen) {
+		// what goes here?
+	}
+	x = (640/2)-(w/2);
+	GRRLIB_PrintfTTF(x, y, font, string, size, color);
+}
+
+void draw_title(const char *string) {
+	draw_center_text(89, string, header_font, 36, 0xFFFFFFFF);
+}
+
+void draw_body(const char *string) {
+	draw_center_text(228, string, body_font, 18, 0xFFFFFFFF);
+}
+
 void early_die(char *message) {
 	while (1) {
 		WPAD_ScanPads();
@@ -150,15 +169,15 @@ void draw_prog_prompt() {
 	sprintf(fuckinghell, "loading: %d", loading);
 	GRRLIB_PrintfTTF(10, 458, body_font, fuckinghell, 18, 0xFFFFFFFF);
 	*/
-	GRRLIB_PrintfTTF(265, 211, body_font, "Please wait...", 18, 0xFFFFFFFF);
+	draw_center_text(211, "Please wait...", body_font, 18, 0xFFFFFFFF);
 	draw_progbar(center_img(320), 241, 320, 24, loading, LOADING_MAX);
 	GRRLIB_Render();
 }
 
 void draw_error_prompt() {
 	draw_prompt(0);
-	GRRLIB_PrintfTTF(274, 89, header_font, "Error", 36, 0xFFFFFFFF);
-	GRRLIB_PrintfTTF(237, 352, body_font, "Press HOME to exit.", 18, 0xFFFFFFFF);
+	draw_title("Error");
+	draw_body("Press HOME to exit.");
 }
 
 void quit() {
@@ -197,7 +216,7 @@ int main(int argc, char **argv) {
 	if (! json_is_string(user_id_object)) {
 		while (1) {
 			draw_error_prompt();
-			GRRLIB_PrintfTTF(180, 228, body_font, "\"user_id\" in config is not a string.", 18, 0xFFFFFFFF);
+			draw_body("\"user_id\" in config is not a string.");
 			GRRLIB_Render();
 			home_quit();
 		}
@@ -208,7 +227,7 @@ int main(int argc, char **argv) {
 	if (strcmp(user_id, "0") == 0) {
 		while (1) {
 			draw_error_prompt();
-			GRRLIB_PrintfTTF(170, 228, body_font, "Please edit /apps/linktag/config.json.", 18, 0xFFFFFFFF);
+			draw_body("Please edit /apps/linktag/config.json.");
 			GRRLIB_Render();
 			home_quit();
 		}
@@ -257,7 +276,7 @@ int main(int argc, char **argv) {
 	if (ret < 0) {
 		while (1) {
 			draw_error_prompt();
-			GRRLIB_PrintfTTF(202, 228, body_font, "Failed to configure network.", 18, 0xFFFFFFFF);
+			draw_body("Failed to configure network.");
 			GRRLIB_Render();
 			home_quit();
 		}
@@ -272,7 +291,7 @@ int main(int argc, char **argv) {
 		winyl_close(&host);
 		while (1) {
 			draw_error_prompt();
-			GRRLIB_PrintfTTF(160, 228, body_font, "Failed to create winyl host.", 18, 0xFFFFFFFF);
+			draw_body("Failed to create winyl host.");
 			GRRLIB_Render();
 			home_quit();
 		}
@@ -289,7 +308,7 @@ int main(int argc, char **argv) {
 		winyl_close(&host);
 		while (1) {
 			draw_error_prompt();
-			GRRLIB_PrintfTTF(181, 228, body_font, "HTTP 404; RiiTag does not exist.", 18, 0xFFFFFFFF);
+			draw_body("HTTP 404; RiiTag does not exist.");
 			GRRLIB_Render();
 			home_quit();
 		}
@@ -304,16 +323,16 @@ int main(int argc, char **argv) {
 			draw_error_prompt();
 			switch (res.error) {
 				case WINYL_ERROR_PORT:
-					GRRLIB_PrintfTTF(10, 228, body_font, "Invalid port (not 0-65535)", 18, 0xFFFFFFFF);
+					draw_body("Invalid port (not 0-65535)");
 					break;
 				case WINYL_ERROR_DNS:
-					GRRLIB_PrintfTTF(10, 228, body_font, "Error calling net_gethostbyname()", 18, 0xFFFFFFFF);
+					draw_body("Error calling net_gethostbyname()");
 					break;
 				case WINYL_ERROR_MALLOC:
-					GRRLIB_PrintfTTF(10, 228, body_font, "Failed to allocate memory", 18, 0xFFFFFFFF);
+					draw_body("Failed to allocate memory");
 					break;
 				default:
-					GRRLIB_PrintfTTF(10, 228, body_font, wtf, 18, 0xFFFFFFFF);
+					draw_body(wtf);
 					break;
 			}
 			GRRLIB_Render();
@@ -342,7 +361,7 @@ int main(int argc, char **argv) {
 		if (WPAD_ButtonsDown(0) & WPAD_BUTTON_HOME)  break;
 
 		draw_prompt(0);
-		GRRLIB_PrintfTTF(237, 352, body_font, "Press HOME to exit.", 18, 0xFFFFFFFF);
+		draw_center_text(352, "Press HOME to exit.", body_font, 18, 0xFFFFFFFF);
 		GRRLIB_DrawImg(center_img(514), 143, tag_tex, 0, ar_correct(1), 1, 0xFFFFFFFF);
 		//GRRLIB_PrintfTTF(5, 125, body_font, "fucking fuck", 12, 0xFFFFFFFF);
 
