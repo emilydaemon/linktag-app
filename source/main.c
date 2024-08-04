@@ -34,10 +34,27 @@ GRRLIB_texImg *background, *prompt, *prompt_sm;
 GRRLIB_ttfFont *header_font, *body_font;
 
 int loading = 0;
+int is_widescreen = 0;
 char winagent[32];
 
 json_t *config_root;
 json_error_t error;
+
+float ar_correct(int w) {
+	if (is_widescreen) {
+		return w * 0.75;
+	} else {
+		return w;
+	}
+}
+
+int center_img(int w) {
+	float wf = w;
+	if (is_widescreen) {
+		wf = w * 0.75;
+	}
+	return (640/2)-(wf/2);
+}
 
 void early_die(char *message) {
 	while (1) {
@@ -56,6 +73,10 @@ void init() {
 	GRRLIB_Init();
 
 	WPAD_Init();
+
+	if (CONF_GetAspectRatio() == CONF_ASPECT_16_9) {
+		is_widescreen = 1;
+	}
 
 	header_font = GRRLIB_LoadTTF(Rubik_Bold_ttf, Rubik_Bold_ttf_size);
 	body_font = GRRLIB_LoadTTF(Inter_Medium_ttf, Inter_Medium_ttf_size);
@@ -107,16 +128,17 @@ void init() {
 void draw_prompt(bool small) {
 	GRRLIB_DrawImg(0, 0, background, 0, 1, 1, 0xFFFFFFFF);
 	if (small) {
-		GRRLIB_DrawImg(0, 0, prompt_sm, 0, 1, 1, 0xFFFFFFFF);
+		GRRLIB_DrawImg(center_img(640), 0, prompt_sm, 0, ar_correct(1), 1, 0xFFFFFFFF);
 	} else {
-		GRRLIB_DrawImg(0, 0, prompt, 0, 1, 1, 0xFFFFFFFF);
+		GRRLIB_DrawImg(center_img(640), 0, prompt, 0, ar_correct(1), 1, 0xFFFFFFFF);
 	}
 }
 
 void draw_progbar(int x, int y, int w, int h, int prog, int prog_max) {
+	w = ar_correct(w);
 	prog = prog * 10;
 	prog_max = prog_max;
-	int prog_filled = ((prog / prog_max) * (w/10));
+	int prog_filled = (prog / prog_max) * (w/10);
 	GRRLIB_Rectangle(x, y, w, h, 0x333333FF, true);
 	GRRLIB_Rectangle(x, y, prog_filled, h, 0xFFFFFFFF, true);
 }
@@ -129,7 +151,7 @@ void draw_prog_prompt() {
 	GRRLIB_PrintfTTF(10, 458, body_font, fuckinghell, 18, 0xFFFFFFFF);
 	*/
 	GRRLIB_PrintfTTF(265, 211, body_font, "Please wait...", 18, 0xFFFFFFFF);
-	draw_progbar(160, 241, 320, 24, loading, LOADING_MAX);
+	draw_progbar(center_img(320), 241, 320, 24, loading, LOADING_MAX);
 	GRRLIB_Render();
 }
 
@@ -321,7 +343,7 @@ int main(int argc, char **argv) {
 
 		draw_prompt(0);
 		GRRLIB_PrintfTTF(237, 352, body_font, "Press HOME to exit.", 18, 0xFFFFFFFF);
-		GRRLIB_DrawImg(63, 143, tag_tex, 0, 1, 1, 0xFFFFFFFF);
+		GRRLIB_DrawImg(center_img(514), 143, tag_tex, 0, ar_correct(1), 1, 0xFFFFFFFF);
 		//GRRLIB_PrintfTTF(5, 125, body_font, "fucking fuck", 12, 0xFFFFFFFF);
 
 		GRRLIB_Render();
