@@ -25,11 +25,6 @@
 
 #define LOADING_MAX 3
 
-/*
-#define STB_IMAGE_RESIZE_IMPLEMENTATION
-#include "stb_image_resize2.h"
-*/
-
 GRRLIB_texImg *background, *prompt, *prompt_sm;
 GRRLIB_ttfFont *header_font, *body_font;
 
