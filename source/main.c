@@ -19,13 +19,15 @@
 #include "background_png.h"
 #include "prompt_png.h"
 #include "prompt_sm_png.h"
+#include "pointer_png.h"
+
 #include "default-config_json.h"
 
 #define VERSION "1.0"
 
 #define LOADING_MAX 4
 
-GRRLIB_texImg *background, *prompt, *prompt_sm;
+GRRLIB_texImg *background, *prompt, *prompt_sm, *pointer;
 GRRLIB_ttfFont *header_font, *body_font;
 
 GRRLIB_texImg *text_layer;
@@ -36,6 +38,8 @@ char winagent[32];
 
 json_t *config_root;
 json_error_t error;
+
+ir_t ir;
 
 float ar_correct(int w) {
 	if (is_widescreen) {
@@ -102,6 +106,9 @@ void init() {
 	GRRLIB_Init();
 
 	WPAD_Init();
+	// IR initialization
+	WPAD_SetVRes(0, 640, 480);
+	WPAD_SetDataFormat(WPAD_CHAN_0, WPAD_FMT_BTNS_ACC_IR);
 
 	if (CONF_GetAspectRatio() == CONF_ASPECT_16_9) {
 		is_widescreen = 1;
@@ -145,10 +152,14 @@ void init() {
 	background = GRRLIB_LoadTextureFromFile("/apps/linktag/theme/background.png");
 	prompt = GRRLIB_LoadTextureFromFile("/apps/linktag/theme/prompt.png");
 	prompt_sm = GRRLIB_LoadTextureFromFile("/apps/linktag/theme/prompt_sm.png");
+	pointer = GRRLIB_LoadTextureFromFile("/apps/linktag/theme/pointer.png");
 
 	if (background == NULL) { background = GRRLIB_LoadTexture(background_png); };
 	if (prompt == NULL) { prompt = GRRLIB_LoadTexture(prompt_png); };
 	if (prompt_sm == NULL) { prompt_sm = GRRLIB_LoadTexture(prompt_sm_png); };
+	if (pointer == NULL) { pointer = GRRLIB_LoadTexture(pointer_png); };
+
+	GRRLIB_SetHandle(pointer, 48, 48);
 
 	char *winyl_ver = malloc(winyl_version_len() + 1);
 	winyl_version(winyl_ver);
@@ -188,6 +199,13 @@ void draw_error_prompt() {
 	draw_prompt(0);
 }
 
+void draw_cursor() {
+	WPAD_IR(0, &ir);
+	if (ir.valid) {
+		GRRLIB_DrawImg(ir.x-48, ir.y-48, pointer, ir.angle, ar_correct(1), 1, 0xFFFFFFFF);
+	}
+}
+
 void quit() {
 	GRRLIB_FreeTexture(background);
 	GRRLIB_FreeTexture(prompt);
@@ -216,6 +234,7 @@ winyl_response get_http(char *url, int port, char *path) {
 			draw_body("Failed to create winyl host.");
 			draw_error_prompt();
 			render_text();
+			draw_cursor();
 			render_finish();
 			home_quit();
 		}
@@ -245,6 +264,7 @@ winyl_response get_http(char *url, int port, char *path) {
 			}
 			draw_error_prompt();
 			render_text();
+			draw_cursor();
 			render_finish();
 			home_quit();
 		}
@@ -259,6 +279,7 @@ winyl_response get_http(char *url, int port, char *path) {
 			draw_body(err_text);
 			draw_error_prompt();
 			render_text();
+			draw_cursor();
 			render_finish();
 			home_quit();
 		}
@@ -291,6 +312,7 @@ int main(int argc, char **argv) {
 			draw_body("\"user_id\" in config is not a string.");
 			draw_error_prompt();
 			render_text();
+			draw_cursor();
 			render_finish();
 			home_quit();
 		}
@@ -303,6 +325,7 @@ int main(int argc, char **argv) {
 			draw_body("Please edit /apps/linktag/config.json.");
 			draw_error_prompt();
 			render_text();
+			draw_cursor();
 			render_finish();
 			home_quit();
 		}
@@ -317,6 +340,7 @@ int main(int argc, char **argv) {
 			draw_body("Failed to configure network.");
 			draw_error_prompt();
 			render_text();
+			draw_cursor();
 			render_finish();
 			home_quit();
 		}
@@ -340,6 +364,7 @@ int main(int argc, char **argv) {
 			draw_body(err_text);
 			draw_error_prompt();
 			render_text();
+			draw_cursor();
 			render_finish();
 			home_quit();
 		}
@@ -371,6 +396,7 @@ int main(int argc, char **argv) {
 		GRRLIB_DrawImg(center_img(514), 143, tag_tex, 0, ar_correct(1), 1, 0xFFFFFFFF);
 		render_text();
 
+		draw_cursor();
 		render_finish();
 	}
 
