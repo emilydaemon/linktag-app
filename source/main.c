@@ -29,7 +29,7 @@
 
 #define LOADING_MAX 4
 
-GRRLIB_texImg *background, *prompt, *prompt_sm, *pointer; // UI elements
+GRRLIB_texImg *background, *prompt, *prompt_sm, *pointer, *button, *button_hover; // UI elements
 GRRLIB_texImg *fade_buffer;
 
 GRRLIB_ttfFont *header_font, *body_font;
@@ -159,11 +159,15 @@ void init() {
 	prompt = GRRLIB_LoadTextureFromFile("/apps/linktag-app/theme/prompt.png");
 	prompt_sm = GRRLIB_LoadTextureFromFile("/apps/linktag-app/theme/prompt_sm.png");
 	pointer = GRRLIB_LoadTextureFromFile("/apps/linktag-app/theme/pointer.png");
+	button = GRRLIB_LoadTextureFromFile("/apps/linktag-app/theme/button.png");
+	button_hover = GRRLIB_LoadTextureFromFile("/apps/linktag-app/theme/button_hover.png");
 
 	if (background == NULL) { background = GRRLIB_LoadTexture(background_png); };
 	if (prompt == NULL) { prompt = GRRLIB_LoadTexture(prompt_png); };
 	if (prompt_sm == NULL) { prompt_sm = GRRLIB_LoadTexture(prompt_sm_png); };
 	if (pointer == NULL) { pointer = GRRLIB_LoadTexture(pointer_png); };
+	if (button == NULL) { button = GRRLIB_LoadTexture(button_png); };
+	if (button_hover == NULL) { button_hover = GRRLIB_LoadTexture(button_hover_png); };
 
 	GRRLIB_SetHandle(pointer, 48, 48);
 
@@ -206,11 +210,16 @@ void draw_error_prompt() {
 }
 
 void draw_button(int x, int y, char *text, void (*func)(void)) {
+	int text_width = GRRLIB_WidthTTF(body_font, text, 18);
 	WPAD_ScanPads();
+	// TODO: do this
+	//draw_text((x + 200/2)-(text_width/2), (y + 60/2)-(18/2), text, body_font, 18, 0xFFFFFFFF);
 	if (GRRLIB_PtInRect(x, y, ar_correct(200), 60, ir.x, ir.y)) {
 		GRRLIB_DrawImg(x, y, button_hover, 0, ar_correct(1), 1, 0xFFFFFFFF);
+		if (WPAD_ButtonsDown(0) & WPAD_BUTTON_A) (*func)();
 	} else {
-		GRRLIB_DrawImg(x, y, button_hover, 0, ar_correct(1), 1, 0xFFFFFFFF);
+		GRRLIB_DrawImg(x, y, button, 0, ar_correct(1), 1, 0xFFFFFFFF);
+	}
 }
 
 void draw_cursor() {
@@ -429,8 +438,9 @@ int main(int argc, char **argv) {
 		if (WPAD_ButtonsDown(0) & WPAD_BUTTON_HOME)  break;
 
 		draw_title(title);
-		draw_center_text(352, "Press HOME to exit.", body_font, 18, 0xFFFFFFFF);
+		//draw_center_text(352, "Press HOME to exit.", body_font, 18, 0xFFFFFFFF);
 		draw_prompt(0);
+		draw_button(center_img(200), 362, "Wii Menu", quit);
 		GRRLIB_DrawImg(center_img(514), 143, tag_tex, 0, ar_correct(1), 1, 0xFFFFFFFF);
 		render_text();
 
