@@ -27,7 +27,9 @@
 
 #define LOADING_MAX 4
 
-GRRLIB_texImg *background, *prompt, *prompt_sm, *pointer;
+GRRLIB_texImg *background, *prompt, *prompt_sm, *pointer; // UI elements
+GRRLIB_texImg *fade_buffer;
+
 GRRLIB_ttfFont *header_font, *body_font;
 
 GRRLIB_texImg *text_layer;
@@ -69,6 +71,7 @@ void render_text() {
 }
 
 void render_finish() {
+	GRRLIB_Screen2Texture(0, 0, fade_buffer, false);
 	GRRLIB_Render();
 	GRRLIB_FillScreen(0x000000FF); // avoid graphical issues/flickering
 }
@@ -118,25 +121,26 @@ void init() {
 	body_font = GRRLIB_LoadTTF(Inter_Medium_ttf, Inter_Medium_ttf_size);
 
 	text_layer = GRRLIB_CreateEmptyTexture(640, 480);
+	fade_buffer = GRRLIB_CreateEmptyTexture(640, 480);
 
 	if (! fatInitDefault()) {
 		early_die("Could not initialize FAT device.");
 	}
 
 	mkdir("/apps", 0600);
-	mkdir("/apps/linktag", 0600);
-	mkdir("/apps/linktag/theme", 0600);
+	mkdir("/apps/linktag-app", 0600);
+	mkdir("/apps/linktag-app/theme", 0600);
 
 	// does config exist?
 	FILE *f;
-	if (access("/apps/linktag/config.json", F_OK) == 0) {
+	if (access("/apps/linktag-app/config.json", F_OK) == 0) {
 		// There be config!
-		f = fopen("/apps/linktag/config.json", "rb");
+		f = fopen("/apps/linktag-app/config.json", "rb");
 		config_root = json_loadf(f, 0, &error);
 		fclose(f);
 	} else {
 		// No config found :(
-		f = fopen("/apps/linktag/config.json", "wb");
+		f = fopen("/apps/linktag-app/config.json", "wb");
 		fwrite(default_config_json, 1, default_config_json_size, f);
 		fclose(f);
 		config_root = json_loads((char*) default_config_json, 0, &error);
@@ -149,10 +153,10 @@ void init() {
 	}
 
 	// custom theming
-	background = GRRLIB_LoadTextureFromFile("/apps/linktag/theme/background.png");
-	prompt = GRRLIB_LoadTextureFromFile("/apps/linktag/theme/prompt.png");
-	prompt_sm = GRRLIB_LoadTextureFromFile("/apps/linktag/theme/prompt_sm.png");
-	pointer = GRRLIB_LoadTextureFromFile("/apps/linktag/theme/pointer.png");
+	background = GRRLIB_LoadTextureFromFile("/apps/linktag-app/theme/background.png");
+	prompt = GRRLIB_LoadTextureFromFile("/apps/linktag-app/theme/prompt.png");
+	prompt_sm = GRRLIB_LoadTextureFromFile("/apps/linktag-app/theme/prompt_sm.png");
+	pointer = GRRLIB_LoadTextureFromFile("/apps/linktag-app/theme/pointer.png");
 
 	if (background == NULL) { background = GRRLIB_LoadTexture(background_png); };
 	if (prompt == NULL) { prompt = GRRLIB_LoadTexture(prompt_png); };
@@ -206,7 +210,29 @@ void draw_cursor() {
 	}
 }
 
+void fade_in() {
+	int i;
+	for (i = 0; i < 256; i = i + 16) {
+		GRRLIB_DrawImg(0, 0, background, 0, 1, 1, 0xFFFFFFFF);
+		GRRLIB_Rectangle(0, 0, 640, 480, 0x000000FF - i, true);
+		GRRLIB_Render();
+		usleep(1000);
+	}
+}
+
+void fade_out() {
+	int i;
+	for (i = 0; i < 256; i = i + 16) {
+		GRRLIB_DrawImg(0, 0, fade_buffer, 0, 1, 1, 0xFFFFFFFF);
+		GRRLIB_Rectangle(0, 0, 640, 480, 0x00000000 + i, true);
+		GRRLIB_Render();
+		usleep(1000);
+	}
+	GRRLIB_FreeTexture(fade_buffer);
+}
+
 void quit() {
+	fade_out();
 	GRRLIB_FreeTexture(background);
 	GRRLIB_FreeTexture(prompt);
 	GRRLIB_FreeTexture(prompt_sm);
@@ -304,6 +330,8 @@ int main(int argc, char **argv) {
 
 	init();
 
+	fade_in();
+
 	json_t *user_id_object = json_object_get(config_root, "user_id");
 	const char *user_id;
 
@@ -322,7 +350,7 @@ int main(int argc, char **argv) {
 
 	if (strcmp(user_id, "0") == 0) {
 		while (1) {
-			draw_body("Please edit /apps/linktag/config.json.");
+			draw_body("Please edit /apps/linktag-app/config.json.");
 			draw_error_prompt();
 			render_text();
 			draw_cursor();
