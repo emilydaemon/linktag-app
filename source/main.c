@@ -19,6 +19,9 @@
 #include "background_png.h"
 #include "prompt_png.h"
 #include "prompt_sm_png.h"
+#include "button_png.h"
+#include "button_hover_png.h"
+
 #include "default-config_json.h"
 
 #define VERSION "1.0"
@@ -189,6 +192,15 @@ void draw_error_prompt() {
 	draw_title("Error");
 	draw_center_text(352, "Press HOME to exit.", body_font, 18, 0xFFFFFFFF);
 	draw_prompt(0);
+}
+
+void draw_button(int x, int y, char *text, void (*func)(void)) {
+	WPAD_ScanPads();
+	if (GRRLIB_PtInRect(x, y, ar_correct(200), 60, ir.x, ir.y)) {
+		GRRLIB_DrawImg(x, y, button_hover, 0, ar_correct(1), 1, 0xFFFFFFFF);
+	} else {
+		GRRLIB_DrawImg(x, y, button_hover, 0, ar_correct(1), 1, 0xFFFFFFFF);
+	}
 }
 
 void fade_in() {
