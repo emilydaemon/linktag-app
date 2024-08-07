@@ -1,4 +1,5 @@
 build/
+linktag-app/config.json
 *.zip
 *.dol
 *.elf

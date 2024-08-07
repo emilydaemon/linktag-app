@@ -114,6 +114,7 @@ clean:
 package:
 	mkdir -p $(TARGET)
 	cp $(TARGET).dol $(TARGET)/boot.dol
+	cp data/default-config.json $(TARGET)/config.json
 	zip -r $(TARGET).zip $(TARGET)
 
 #---------------------------------------------------------------------------------
