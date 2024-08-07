@@ -264,7 +264,7 @@ void quit() {
 }
 
 void draw_error_prompt() {
-	draw_button((640/2)-(200/2), 352, "Exit", quit);
+	draw_button((640/2)-(200/2), 352, "Return to Loader", quit);
 	draw_title("Error");
 	//draw_center_text(352, "Press HOME to exit.", body_font, 18, 0xFFFFFFFF);
 	draw_prompt(0);
@@ -465,7 +465,7 @@ int main(int argc, char **argv) {
 		if (WPAD_ButtonsDown(0) & WPAD_BUTTON_HOME)  break;
 
 		draw_title(title);
-		draw_button((640/2)-(200/2), 352, "Exit", quit);
+		draw_button((640/2)-(200/2), 352, "Return to Loader", quit);
 		draw_prompt(0);
 		GRRLIB_DrawImg(center_img(514), 143, tag_tex, 0, ar_correct(1), 1, 0xFFFFFFFF);
 		render_buttons();
