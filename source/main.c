@@ -286,7 +286,7 @@ winyl_response get_http(char *url, int port, char *path) {
 	winyl_change_http(&host, WINYL_HTTP_1_0);
 
 	winyl_add_header(&host, "User-Agent", winagent);
-	if (host.error == 0) {
+	if (host.error != 0) {
 		winyl_close(&host);
 		while (1) {
 			WPAD_ScanPads();
