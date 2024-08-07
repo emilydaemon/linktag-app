@@ -19,6 +19,8 @@
 #include "background_png.h"
 #include "prompt_png.h"
 #include "prompt_sm_png.h"
+#include "button_png.h"
+#include "button_hover_png.h"
 #include "pointer_png.h"
 
 #include "default-config_json.h"
@@ -27,12 +29,12 @@
 
 #define LOADING_MAX 4
 
-GRRLIB_texImg *background, *prompt, *prompt_sm, *pointer; // UI elements
+GRRLIB_texImg *background, *prompt, *prompt_sm, *pointer, *button, *button_hover; // UI elements
 GRRLIB_texImg *fade_buffer;
 
 GRRLIB_ttfFont *header_font, *body_font;
 
-GRRLIB_texImg *text_layer;
+GRRLIB_texImg *text_layer, *button_layer;
 
 int loading = 0;
 int is_widescreen = 0;
@@ -68,6 +70,10 @@ void draw_text(int x, int y, const char *string, GRRLIB_ttfFont *font, int size,
 
 void render_text() {
 	GRRLIB_DrawImg(center_img(640), 0, text_layer, 0, ar_correct(1), 1, 0xFFFFFFFF);
+}
+
+void render_buttons() {
+	GRRLIB_DrawImg(center_img(640), 0, button_layer, 0, ar_correct(1), 1, 0xFFFFFFFF);
 }
 
 void render_finish() {
@@ -121,6 +127,7 @@ void init() {
 	body_font = GRRLIB_LoadTTF(Inter_Medium_ttf, Inter_Medium_ttf_size);
 
 	text_layer = GRRLIB_CreateEmptyTexture(640, 480);
+	button_layer = GRRLIB_CreateEmptyTexture(640, 480);
 	fade_buffer = GRRLIB_CreateEmptyTexture(640, 480);
 
 	if (! fatInitDefault()) {
@@ -157,11 +164,15 @@ void init() {
 	prompt = GRRLIB_LoadTextureFromFile("/apps/linktag-app/theme/prompt.png");
 	prompt_sm = GRRLIB_LoadTextureFromFile("/apps/linktag-app/theme/prompt_sm.png");
 	pointer = GRRLIB_LoadTextureFromFile("/apps/linktag-app/theme/pointer.png");
+	button = GRRLIB_LoadTextureFromFile("/apps/linktag-app/theme/button.png");
+	button_hover = GRRLIB_LoadTextureFromFile("/apps/linktag-app/theme/button_hover.png");
 
 	if (background == NULL) { background = GRRLIB_LoadTexture(background_png); };
 	if (prompt == NULL) { prompt = GRRLIB_LoadTexture(prompt_png); };
 	if (prompt_sm == NULL) { prompt_sm = GRRLIB_LoadTexture(prompt_sm_png); };
 	if (pointer == NULL) { pointer = GRRLIB_LoadTexture(pointer_png); };
+	if (button == NULL) { button = GRRLIB_LoadTexture(button_png); };
+	if (button_hover == NULL) { button_hover = GRRLIB_LoadTexture(button_hover_png); };
 
 	GRRLIB_SetHandle(pointer, 48, 48);
 
@@ -197,17 +208,22 @@ void draw_prog_prompt() {
 	render_finish();
 }
 
-void draw_error_prompt() {
-	draw_title("Error");
-	draw_center_text(352, "Press HOME to exit.", body_font, 18, 0xFFFFFFFF);
-	draw_prompt(0);
-}
+void draw_button(int x, int y, char *label, void (*func)(void)) {
+	int text_width = GRRLIB_WidthTTF(body_font, label, 18);
 
-void draw_cursor() {
-	WPAD_IR(0, &ir);
-	if (ir.valid) {
-		GRRLIB_DrawImg(ir.x-48, ir.y-48, pointer, ir.angle, ar_correct(1), 1, 0xFFFFFFFF);
+	GRRLIB_CompoStart();
+
+	GRRLIB_DrawImg(0, 0, button_layer, 0, 1, 1, 0xFFFFFFFF);
+
+	if (GRRLIB_PtInRect(x, y, ar_correct(200), 60, ir.x, ir.y)) {
+		GRRLIB_DrawImg(x, y, button_hover, 0, 1, 1, 0xFFFFFFFF);
+		if (WPAD_ButtonsDown(0) & WPAD_BUTTON_A) (*func)();
+	} else {
+		GRRLIB_DrawImg(x, y, button, 0, 1, 1, 0xFFFFFFFF);
 	}
+
+	GRRLIB_CompoEnd(0, 0, button_layer);
+	draw_text(((200/2)-(text_width/2))+x, (y + 60/2)-(20/2), label, body_font, 18, 0xFFFFFFFF);
 }
 
 void fade_in() {
@@ -236,6 +252,9 @@ void quit() {
 	GRRLIB_FreeTexture(background);
 	GRRLIB_FreeTexture(prompt);
 	GRRLIB_FreeTexture(prompt_sm);
+	GRRLIB_FreeTexture(button);
+	GRRLIB_FreeTexture(button_hover);
+	GRRLIB_FreeTexture(button_layer);
 	GRRLIB_FreeTexture(text_layer);
 	GRRLIB_FreeTTF(header_font);
 	GRRLIB_FreeTTF(body_font);
@@ -244,8 +263,21 @@ void quit() {
 	exit(0);
 }
 
+void draw_error_prompt() {
+	draw_button((640/2)-(200/2), 352, "Return to Loader", quit);
+	draw_title("Error");
+	//draw_center_text(352, "Press HOME to exit.", body_font, 18, 0xFFFFFFFF);
+	draw_prompt(0);
+}
+
+void draw_cursor() {
+	WPAD_IR(0, &ir);
+	if (ir.valid) {
+		GRRLIB_DrawImg(ir.x-48, ir.y-48, pointer, ir.angle, ar_correct(1), 1, 0xFFFFFFFF);
+	}
+}
+
 void home_quit() {
-	WPAD_ScanPads();
 	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_HOME) quit();
 }
 
@@ -257,8 +289,10 @@ winyl_response get_http(char *url, int port, char *path) {
 	if (host.error != 0) {
 		winyl_close(&host);
 		while (1) {
+			WPAD_ScanPads();
 			draw_body("Failed to create winyl host.");
 			draw_error_prompt();
+			render_buttons();
 			render_text();
 			draw_cursor();
 			render_finish();
@@ -274,6 +308,7 @@ winyl_response get_http(char *url, int port, char *path) {
 		winyl_response_close(&res);
 		winyl_close(&host);
 		while (1) {
+			WPAD_ScanPads();
 			switch (res.error) {
 				case WINYL_ERROR_PORT:
 					draw_body("Invalid port (not 0-65535)");
@@ -289,6 +324,7 @@ winyl_response get_http(char *url, int port, char *path) {
 					break;
 			}
 			draw_error_prompt();
+			render_buttons();
 			render_text();
 			draw_cursor();
 			render_finish();
@@ -302,8 +338,10 @@ winyl_response get_http(char *url, int port, char *path) {
 		winyl_response_close(&res);
 		winyl_close(&host);
 		while (1) {
+			WPAD_ScanPads();
 			draw_body(err_text);
 			draw_error_prompt();
+			render_buttons();
 			render_text();
 			draw_cursor();
 			render_finish();
@@ -337,8 +375,10 @@ int main(int argc, char **argv) {
 
 	if (! json_is_string(user_id_object)) {
 		while (1) {
+			WPAD_ScanPads();
 			draw_body("\"user_id\" in config is not a string.");
 			draw_error_prompt();
+			render_buttons();
 			render_text();
 			draw_cursor();
 			render_finish();
@@ -350,8 +390,10 @@ int main(int argc, char **argv) {
 
 	if (strcmp(user_id, "0") == 0) {
 		while (1) {
+			WPAD_ScanPads();
 			draw_body("Please edit /apps/linktag-app/config.json.");
 			draw_error_prompt();
+			render_buttons();
 			render_text();
 			draw_cursor();
 			render_finish();
@@ -365,8 +407,10 @@ int main(int argc, char **argv) {
 	ret = if_config(localip, netmask, gateway, TRUE, 20);
 	if (ret < 0) {
 		while (1) {
+			WPAD_ScanPads();
 			draw_body("Failed to configure network.");
 			draw_error_prompt();
+			render_buttons();
 			render_text();
 			draw_cursor();
 			render_finish();
@@ -389,8 +433,10 @@ int main(int argc, char **argv) {
 		char err_text[256] = "";
 		sprintf(err_text, "JSON error on line %d: %s", error.line, error.text);
 		while (1) {
+			WPAD_ScanPads();
 			draw_body(err_text);
 			draw_error_prompt();
+			render_buttons();
 			render_text();
 			draw_cursor();
 			render_finish();
@@ -419,9 +465,10 @@ int main(int argc, char **argv) {
 		if (WPAD_ButtonsDown(0) & WPAD_BUTTON_HOME)  break;
 
 		draw_title(title);
-		draw_center_text(352, "Press HOME to exit.", body_font, 18, 0xFFFFFFFF);
+		draw_button((640/2)-(200/2), 352, "Return to Loader", quit);
 		draw_prompt(0);
 		GRRLIB_DrawImg(center_img(514), 143, tag_tex, 0, ar_correct(1), 1, 0xFFFFFFFF);
+		render_buttons();
 		render_text();
 
 		draw_cursor();
