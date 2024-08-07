@@ -21,3 +21,41 @@ int main() {
 ```
 
 Looking for something to do? To-do can be found here: https://github.com/users/emilydaemon/projects/1
+
+### Compiling
+
+First, install all the required dependencies:
+
+```
+git clone https://github.com/GRRLIB/GRRLIB
+pacman --sync --needed --noconfirm libfat-ogc ppc-libpng ppc-freetype ppc-libjpeg-turbo
+cd GRRLIB/GRRLIB
+make clean all install
+
+pacman --sync --needed --noconfirm ppc-jansson wii-winyl
+```
+
+Then, compile.
+
+```
+git clone https://github.com/emilydaemon/linktag-app
+cd linktag-app
+make
+```
+
+The makefile supports many arguments.
+
+|Argument|Description|
+|-|-|
+|build|Default argument. Compiles the app.|
+|run|Runs the app on your Wii using Wiiload.|
+|package|Creates a .zip with boot.dol, icon.png, and meta.xml.|
+|package-run|Transfers the packaged .zip to your Wii using Wiiload.|
+|clean|Clean up build files.|
+
+A couple examples:
+
+```
+make build run              # Compile, run binary on Wii
+make package package-run    # Build package, transfer to Wii
+```
