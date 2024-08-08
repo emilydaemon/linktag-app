@@ -44,31 +44,13 @@ int main(int argc, char **argv) {
 	const char *user_id;
 
 	if (! json_is_string(user_id_object)) {
-		while (1) {
-			WPAD_ScanPads();
-			draw_body("\"user_id\" in config is not a string.");
-			draw_error_prompt();
-			render_buttons();
-			render_text();
-			draw_cursor();
-			render_finish();
-			home_quit();
-		}
+		easy_error("\"user_id\" in config is not a string.");
 	}
 
 	user_id = json_string_value(user_id_object);
 
 	if (strcmp(user_id, "0") == 0) {
-		while (1) {
-			WPAD_ScanPads();
-			draw_body("Please edit /apps/linktag-app/config.json.");
-			draw_error_prompt();
-			render_buttons();
-			render_text();
-			draw_cursor();
-			render_finish();
-			home_quit();
-		}
+		easy_error("Please edit /apps/linktag-app/config.json.");
 	}
 
 	loading = 0;
@@ -77,16 +59,7 @@ int main(int argc, char **argv) {
 	// configure network
 	ret = if_config(localip, netmask, gateway, TRUE, 20);
 	if (ret < 0) {
-		while (1) {
-			WPAD_ScanPads();
-			draw_body("Failed to configure network.");
-			draw_error_prompt();
-			render_buttons();
-			render_text();
-			draw_cursor();
-			render_finish();
-			home_quit();
-		}
+		easy_error("Failed to configure network.");
 	}
 
 	loading++; draw_prog_prompt();
@@ -103,16 +76,7 @@ int main(int argc, char **argv) {
 	if (! api_root) {
 		char err_text[256] = "";
 		sprintf(err_text, "JSON error on line %d: %s", error.line, error.text);
-		while (1) {
-			WPAD_ScanPads();
-			draw_body(err_text);
-			draw_error_prompt();
-			render_buttons();
-			render_text();
-			draw_cursor();
-			render_finish();
-			home_quit();
-		}
+		easy_error(err_text);
 	}
 
 	api_user = json_object_get(api_root, "user");

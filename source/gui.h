@@ -22,5 +22,6 @@ void fade_in();
 void fade_out();
 void draw_error_prompt();
 void draw_cursor();
+void easy_error(char *text);
 
 #endif

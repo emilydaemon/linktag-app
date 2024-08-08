@@ -163,3 +163,15 @@ void draw_cursor() {
 	}
 }
 
+void easy_error(char *text) {
+	while (1) {
+		WPAD_ScanPads();
+		draw_body(text);
+		draw_error_prompt();
+		render_buttons();
+		render_text();
+		draw_cursor();
+		render_finish();
+		home_quit();
+	}
+}
