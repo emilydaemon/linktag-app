@@ -23,8 +23,6 @@ extern int loading;
 extern json_t *config_root;
 extern json_error_t error;
 
-ir_t ir;
-
 int main(int argc, char **argv) {
 	s32 ret;
 	char localip[16] = {0};

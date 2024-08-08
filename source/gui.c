@@ -29,7 +29,7 @@ GRRLIB_texImg *text_layer, *button_layer;
 int is_widescreen = 0;
 
 extern int loading;
-extern ir_t ir;
+ir_t ir;
 
 float ar_correct(int w) {
 	if (is_widescreen) {
