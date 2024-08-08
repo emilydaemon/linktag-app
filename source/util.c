@@ -39,7 +39,7 @@ extern int is_widescreen;
 json_t *config_root;
 json_error_t error;
 
-char winagent[32];
+extern char winagent[];
 
 void early_die(char *message) {
 	while (1) {
