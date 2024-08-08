@@ -1,23 +1,13 @@
 #include <grrlib.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
 #include <wiiuse/wpad.h>
-#include <fat.h>
-#include <sys/stat.h>
 
 #include <jansson.h>
-
-#include <winyl/winyl.h>
-#include <winyl/request.h>
-#include <winyl/header.h>
-#include <winyl/version.h>
 
 #include "gui.h"
 #include "util.h"
 #include "http.h"
-
-#include "default-config_json.h"
 
 extern int is_widescreen;
 
