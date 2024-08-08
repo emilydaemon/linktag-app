@@ -29,9 +29,10 @@ jobs:
               dkp-pacman --sync --needed --noconfirm libfat-ogc ppc-libpng ppc-freetype ppc-libjpeg-turbo
               cd GRRLIB/GRRLIB
               make clean all install
-              echo "[nez-wii]" >> /etc/pacman.conf
-              echo "SigLevel = Never" >> /etc/pacman.conf
-              echo "Server = https://wii.nezbednik.eu.org" >> /etc/pacman.conf
+              echo "[nez-wii]" >> /opt/devkitpro/pacman/pacman.conf
+              echo "SigLevel = Never" >> /opt/devkitpro/pacman/pacman.conf
+              echo "Server = https://wii.nezbednik.eu.org" >> /opt/devkitpro/pacman/pacman.conf
+              cat /opt/devkitpro/pacman/pacman.conf
               dkp-pacman --sync --needed --noconfirm ppc-jansson wii-winyl
         
       - name: Compile
