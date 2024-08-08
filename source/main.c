@@ -41,6 +41,7 @@ int main(int argc, char **argv) {
 
 	fade_in();
 
+	// load config
 	json_t *user_id_object = json_object_get(config_root, "user_id");
 	const char *user_id;
 
@@ -74,7 +75,8 @@ int main(int argc, char **argv) {
 
 	loading = 0;
 	draw_prog_prompt();
-	
+
+	// configure network
 	ret = if_config(localip, netmask, gateway, TRUE, 20);
 	if (ret < 0) {
 		while (1) {
