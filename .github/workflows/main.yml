@@ -1,14 +1,14 @@
-name: Build binaries
+name: Compile
 
 on:
-  push:
-    branches:
-      - "**"
-    paths-ignore:
-      - '**.md'
-      - '.github/ISSUE_TEMPLATE/**'
-      - '.github/FUNDING.yml'
-      - '.github/**/*.md'
+  #push:
+  #  branches:
+  #    - "**"
+  #  paths-ignore:
+  #    - '**.md'
+  #    - '.github/ISSUE_TEMPLATE/**'
+  #    - '.github/FUNDING.yml'
+  #    - '.github/**/*.md'
   pull_request:
     paths-ignore:
       - '**.md'
@@ -37,4 +37,4 @@ jobs:
               dkp-pacman --sync --needed --noconfirm ppc-jansson wii-winyl
         
       - name: Compile
-        run: make
+        run: make clean build package
