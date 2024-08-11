@@ -3,6 +3,7 @@
 
 void early_die(char *message);
 void init();
+void softquit();
 void quit();
 void home_quit();
 

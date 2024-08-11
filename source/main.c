@@ -8,6 +8,7 @@
 #include "gui.h"
 #include "util.h"
 #include "http.h"
+#include "hwbutton.h"
 
 extern int is_widescreen;
 
@@ -98,6 +99,9 @@ int main(int argc, char **argv) {
 
 		// If [HOME] was pressed on the first Wiimote, break out of the loop
 		if (WPAD_ButtonsDown(0) & WPAD_BUTTON_HOME)  break;
+
+		// if POWER/RESET is pressed, quit (check hwbutton.h for more info)
+		hwbutton_check();
 
 		draw_title(title);
 		draw_button((640/2)-(200/2), 352, "Return to Loader", quit);
