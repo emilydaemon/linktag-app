@@ -8,6 +8,7 @@
 #include "gui.h"
 #include "util.h"
 #include "http.h"
+#include "api.h"
 
 extern int is_widescreen;
 
@@ -23,6 +24,8 @@ extern int loading;
 extern json_t *config_root;
 extern json_error_t error;
 
+extern user_api *api_res;
+
 int main(int argc, char **argv) {
 	s32 ret;
 	char localip[16] = {0};
@@ -33,7 +36,7 @@ int main(int argc, char **argv) {
 
 	GRRLIB_texImg *tag_tex;
 
-	winyl_response res_img, res_api;
+	winyl_response res_img;
 
 	init();
 
@@ -64,25 +67,11 @@ int main(int argc, char **argv) {
 
 	loading++; draw_prog_prompt();
 
-	sprintf(url, "/api/user/%s", user_id);
-	res_api = get_http("tag.rc24.xyz", 80, url);
+	// get API data
+	api_res = get_user_api(user_id);
 	loading++; draw_prog_prompt();
 
-	json_t *api_root, *api_username_obj, *api_user;
-	const char *username;
-
-	api_root = json_loads(res_api.body, 0, &error);
-
-	if (! api_root) {
-		char err_text[256] = "";
-		sprintf(err_text, "JSON error on line %d: %s", error.line, error.text);
-		easy_error(err_text);
-	}
-
-	api_user = json_object_get(api_root, "user");
-	api_username_obj = json_object_get(api_user, "name");
-	username = json_string_value(api_username_obj);
-
+	// get tag image
 	sprintf(url, "/tag-resize-hack.php?id=%s", user_id);
 	res_img = get_http("donut.eu.org", 80, url);
 	loading++; draw_prog_prompt();
@@ -92,7 +81,7 @@ int main(int argc, char **argv) {
 	tag_tex = GRRLIB_LoadTexture(tag_img);
 
 	char title[128];
-	sprintf(title, "%s's tag", username);
+	sprintf(title, "%s's tag", api_res->username);
 	while (1) {
 		WPAD_ScanPads();
 
@@ -111,7 +100,6 @@ int main(int argc, char **argv) {
 	}
 
 	winyl_response_close(&res_img);
-	winyl_response_close(&res_api);
 
 	quit();
 	// we should never reach this point. WTF?

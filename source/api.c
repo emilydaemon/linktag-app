@@ -11,7 +11,7 @@ typedef struct user_gamedata_api user_gamedata_api;
 typedef struct user_api user_api;
 
 // Only call this after configuring the network. You bumbling idiot.
-user_api *get_user_api(char *user_id) {
+user_api *get_user_api(const char *user_id) {
 	char url[128];
 
 	// allocate memory for every struct
