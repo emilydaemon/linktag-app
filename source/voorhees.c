@@ -53,3 +53,15 @@ json_int_t voorhees_integer_value(json_t *a, char *b) {
 	json_int_t number = json_integer_value(obj);
 	return number;
 }
+
+bool voorhees_boolean_value(json_t *a, char *b) {
+	json_t *obj = json_object_get(a, b);
+	if (! json_is_boolean(obj)) {
+		char err_text[256] = "";
+		sprintf(err_text, "voorhees: %s is not a boolean.", b);
+		json_decref(a);
+		easy_error(err_text);
+	}
+	bool value = json_boolean_value(obj);
+	return value;
+}
