@@ -14,6 +14,7 @@
 #include "gui.h"
 #include "util.h"
 #include "version.h"
+#include "api.h"
 
 // assets
 #include "Rubik-Bold_ttf.h"
@@ -38,6 +39,9 @@ extern int is_widescreen;
 
 json_t *config_root;
 json_error_t error;
+
+// whatever the fuck fucking shit has to be global fucks sake
+user_api *api_res; // cunt
 
 extern char winagent[];
 
@@ -65,6 +69,9 @@ void init() {
 	if (CONF_GetAspectRatio() == CONF_ASPECT_16_9) {
 		is_widescreen = 1;
 	}
+
+	// init *api_res as null
+	api_res = NULL;
 
 	header_font = GRRLIB_LoadTTF(Rubik_Bold_ttf, Rubik_Bold_ttf_size);
 	body_font = GRRLIB_LoadTTF(Inter_Medium_ttf, Inter_Medium_ttf_size);
@@ -127,6 +134,7 @@ void init() {
 
 void quit() {
 	fade_out();
+	destroy_user_api(api_res);
 	GRRLIB_FreeTexture(background);
 	GRRLIB_FreeTexture(prompt);
 	GRRLIB_FreeTexture(prompt_sm);
