@@ -16,6 +16,7 @@
 #include "version.h"
 #include "api.h"
 #include "config.h"
+#include "hwbutton.h"
 
 // assets
 #include "Rubik-Bold_ttf.h"
@@ -67,6 +68,9 @@ void init() {
 	WPAD_SetVRes(0, 640, 480);
 	WPAD_SetDataFormat(WPAD_CHAN_0, WPAD_FMT_BTNS_ACC_IR);
 
+	// set up power and reset button loopbacks
+	init_hwbutton();
+
 	if (CONF_GetAspectRatio() == CONF_ASPECT_16_9) {
 		is_widescreen = 1;
 	}
@@ -116,7 +120,7 @@ void init() {
 	free(winyl_ver);
 }
 
-void quit() {
+void softquit() {
 	fade_out();
 	destroy_user_api(api_res);
 	destroy_config(cfg);
@@ -131,6 +135,10 @@ void quit() {
 	GRRLIB_FreeTTF(body_font);
 	GRRLIB_Exit();
 	fatUnmount(0);
+}
+
+void quit() {
+	softquit();
 	exit(0);
 }
 

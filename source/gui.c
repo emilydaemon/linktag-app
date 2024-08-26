@@ -5,6 +5,7 @@
 
 #include "gui.h"
 #include "util.h"
+#include "hwbutton.h"
 
 // assets
 #include "Rubik-Bold_ttf.h"
@@ -166,6 +167,7 @@ void draw_cursor() {
 void easy_error(char *text) {
 	while (1) {
 		WPAD_ScanPads();
+		hwbutton_check();
 		draw_body(text);
 		draw_error_prompt();
 		render_buttons();
