@@ -9,6 +9,7 @@
 #include "util.h"
 #include "http.h"
 #include "api.h"
+#include "config.h"
 
 extern int is_widescreen;
 
@@ -25,6 +26,7 @@ extern json_t *config_root;
 extern json_error_t error;
 
 extern user_api *api_res;
+extern config *cfg;
 
 int main(int argc, char **argv) {
 	s32 ret;
@@ -42,17 +44,7 @@ int main(int argc, char **argv) {
 
 	fade_in();
 
-	// load config
-	json_t *user_id_object = json_object_get(config_root, "user_id");
-	const char *user_id;
-
-	if (! json_is_string(user_id_object)) {
-		easy_error("\"user_id\" in config is not a string.");
-	}
-
-	user_id = json_string_value(user_id_object);
-
-	if (strcmp(user_id, "0") == 0) {
+	if (strcmp(cfg->user_id, "0") == 0) {
 		easy_error("Please edit /apps/linktag-app/config.json.");
 	}
 
@@ -68,11 +60,11 @@ int main(int argc, char **argv) {
 	loading++; draw_prog_prompt();
 
 	// get API data
-	api_res = get_user_api(user_id);
+	api_res = get_user_api(cfg->user_id);
 	loading++; draw_prog_prompt();
 
 	// get tag image
-	sprintf(url, "/tag-resize-hack.php?id=%s", user_id);
+	sprintf(url, "/tag-resize-hack.php?id=%s", cfg->user_id);
 	res_img = get_http("donut.eu.org", 80, url);
 	loading++; draw_prog_prompt();
 

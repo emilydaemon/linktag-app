@@ -15,6 +15,7 @@
 #include "util.h"
 #include "version.h"
 #include "api.h"
+#include "config.h"
 
 // assets
 #include "Rubik-Bold_ttf.h"
@@ -26,8 +27,6 @@
 #include "button_png.h"
 #include "button_hover_png.h"
 #include "pointer_png.h"
-
-#include "default-config_json.h"
 
 extern GRRLIB_texImg *background, *prompt, *prompt_sm, *pointer, *button, *button_hover; // UI elements
 extern GRRLIB_texImg *fade_buffer;
@@ -42,6 +41,7 @@ json_error_t error;
 
 // whatever the fuck fucking shit has to be global fucks sake
 user_api *api_res; // cunt
+config *cfg; // dickhead
 
 extern char winagent[];
 
@@ -58,6 +58,7 @@ void early_die(char *message) {
 	}
 }
 
+// TODO: Furcate init() into multiple functions.
 void init() {
 	GRRLIB_Init();
 
@@ -70,8 +71,9 @@ void init() {
 		is_widescreen = 1;
 	}
 
-	// init *api_res as null
+	// init struct pointers as null
 	api_res = NULL;
+	cfg = NULL;
 
 	header_font = GRRLIB_LoadTTF(Rubik_Bold_ttf, Rubik_Bold_ttf_size);
 	body_font = GRRLIB_LoadTTF(Inter_Medium_ttf, Inter_Medium_ttf_size);
@@ -88,26 +90,8 @@ void init() {
 	mkdir("/apps/linktag-app", 0600);
 	mkdir("/apps/linktag-app/theme", 0600);
 
-	// does config exist?
-	FILE *f;
-	if (access("/apps/linktag-app/config.json", F_OK) == 0) {
-		// There be config!
-		f = fopen("/apps/linktag-app/config.json", "rb");
-		config_root = json_loadf(f, 0, &error);
-		fclose(f);
-	} else {
-		// No config found :(
-		f = fopen("/apps/linktag-app/config.json", "wb");
-		fwrite(default_config_json, 1, default_config_json_size, f);
-		fclose(f);
-		config_root = json_loads((char*) default_config_json, 0, &error);
-	}
-
-	if (! config_root) {
-		char message[256] = "";
-		sprintf(message, "JSON error at line %d: %s", error.line, error.text);
-		early_die(message);
-	}
+	// load config
+	cfg = load_config();
 
 	// custom theming
 	background = GRRLIB_LoadTextureFromFile("/apps/linktag-app/theme/background.png");
@@ -135,6 +119,7 @@ void init() {
 void quit() {
 	fade_out();
 	destroy_user_api(api_res);
+	destroy_config(cfg);
 	GRRLIB_FreeTexture(background);
 	GRRLIB_FreeTexture(prompt);
 	GRRLIB_FreeTexture(prompt_sm);
