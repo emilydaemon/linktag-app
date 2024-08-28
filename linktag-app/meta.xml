@@ -2,7 +2,7 @@
 <app version="1">
 	<name>LinkTag App</name>
 	<coder>emilydaemon</coder>
-	<version>1.0.1</version>
+	<version>1.0.2</version>
 	<release_date>20240826000000</release_date>
 	<short_description>View your LinkTag!</short_description>
 	<long_description>View your LinkTag - on your Wii!</long_description>
