@@ -93,6 +93,8 @@ user_api *get_user_api(const char *user_id) {
 }
 
 void destroy_user_api(user_api *p) {
+	if (p == NULL) return;
+
 	// we'll be freeing the structs last
 	free(p->username);
 	free(p->user_id);
