@@ -51,6 +51,8 @@ config *load_config() {
 }
 
 void destroy_config(config *p) {
+	if (p == NULL) return;
+
 	free(p->user_id);
 	free(p);
 }
