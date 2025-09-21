@@ -46,6 +46,10 @@ config *load_config() {
 	p->user_id = malloc(strlen(config_user_id)+1);
 	strcpy(p->user_id, config_user_id);
 
+	const char *config_instance_host = voorhees_string_value(config_root, "instance_host");
+	p->instance_host = malloc(strlen(config_instance_host)+1);
+	strcpy(p->instance_host, config_instance_host);
+
 	json_decref(config_root);
 	return p;
 }
@@ -54,5 +58,6 @@ void destroy_config(config *p) {
 	if (p == NULL) return;
 
 	free(p->user_id);
+	free(p->instance_host);
 	free(p);
 }

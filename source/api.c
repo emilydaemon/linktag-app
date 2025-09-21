@@ -11,7 +11,7 @@ typedef struct user_gamedata_api user_gamedata_api;
 typedef struct user_api user_api;
 
 // Only call this after configuring the network. You bumbling idiot.
-user_api *get_user_api(const char *user_id) {
+user_api *get_user_api(const char *user_id, char *instance_host) {
 	char url[128];
 
 	// allocate memory for every struct
@@ -23,7 +23,7 @@ user_api *get_user_api(const char *user_id) {
 
 	// download API data
 	sprintf(url, "/api/user/%s", user_id);
-	winyl_response res_api = get_http("tag.rc24.xyz", 80, url);
+	winyl_response res_api = get_http(instance_host, 80, url);
 
 	json_t *api_root = json_loads(res_api.body, 0, &error);
 

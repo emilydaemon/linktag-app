@@ -3,6 +3,7 @@
 
 typedef struct config {
 	char *user_id;
+	char *instance_host;
 } config;
 
 config *load_config();

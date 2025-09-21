@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
 	loading++; draw_prog_prompt();
 
 	// get API data
-	api_res = get_user_api(cfg->user_id);
+	api_res = get_user_api(cfg->user_id, cfg->instance_host);
 	loading++; draw_prog_prompt();
 
 	// get tag image
