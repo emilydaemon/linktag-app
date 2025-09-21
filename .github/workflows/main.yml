@@ -19,7 +19,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: devkitpro/devkitppc:20240702
+    container: devkitpro/devkitppc:20250727
     steps:
       - uses: actions/checkout@v3
 
