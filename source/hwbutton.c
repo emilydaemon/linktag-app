@@ -10,10 +10,10 @@ int hwbutton = -1;
 void console_power_callback() {
 	hwbutton = SYS_POWEROFF;
 }
-void console_reset_callback() {
+void console_reset_callback(u32 irq, void* ctx) {
 	hwbutton = SYS_RETURNTOMENU;
 }
-void remote_power_callback() {
+void remote_power_callback(int channel) {
 	hwbutton = SYS_POWEROFF;
 }
 
