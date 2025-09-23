@@ -65,8 +65,8 @@ int main(int argc, char **argv) {
 	loading++; draw_prog_prompt();
 
 	// get tag image
-	sprintf(url, "/tag-resize-hack.php?id=%s", cfg->user_id);
-	res_img = get_http("donut.eu.org", 80, url);
+	sprintf(url, "/tag-resize-hack.php?id=%s&host=%s", cfg->user_id, cfg->instance_host);
+	res_img = get_http("lalonde.donut.eu.org", 80, url);
 	loading++; draw_prog_prompt();
 
 	u8 *tag_img = (unsigned char *) res_img.body;
