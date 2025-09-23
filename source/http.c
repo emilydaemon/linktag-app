@@ -14,6 +14,7 @@
 char winagent[32];
 
 winyl_response get_http(char *url, int port, char *path) {
+	SYS_Report("get_http(\"%s\", \"%d\", \"%s\")\n", url, port, path);
 	winyl host = winyl_open(url, port);
 	winyl_change_http(&host, WINYL_HTTP_1_0);
 

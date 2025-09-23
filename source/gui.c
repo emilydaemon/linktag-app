@@ -165,6 +165,7 @@ void draw_cursor() {
 }
 
 void easy_error(char *text) {
+	SYS_Report("linktag-app ERROR! %s\n", text);
 	while (1) {
 		WPAD_ScanPads();
 		hwbutton_check();

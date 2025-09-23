@@ -47,6 +47,7 @@ config *cfg; // dickhead
 extern char winagent[];
 
 void early_die(char *message) {
+	SYS_Report("linktag-app ERROR! early crash handler: %s\n", message);
 	while (1) {
 		WPAD_ScanPads();
 		if (WPAD_ButtonsDown(0) & WPAD_BUTTON_HOME) exit(1);
@@ -61,6 +62,7 @@ void early_die(char *message) {
 
 // TODO: Furcate init() into multiple functions.
 void init() {
+	SYS_Report("linktag-app\n");
 	GRRLIB_Init();
 
 	WPAD_Init();
