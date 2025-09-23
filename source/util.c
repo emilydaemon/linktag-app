@@ -77,12 +77,6 @@ void init() {
 		is_widescreen = 1;
 	}
 
-	// true 4:3 and 16:9
-	rmode = VIDEO_GetPreferredMode(NULL);
-	rmode->viWidth = 704;
-	VIDEO_Configure(rmode);
-	VIDEO_Flush();
-
 	// init struct pointers as null
 	api_res = NULL;
 	cfg = NULL;
